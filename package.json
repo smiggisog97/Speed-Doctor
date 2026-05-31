@@ -1,0 +1,53 @@
+{
+  "name": "speed-doctor",
+  "version": "1.0.0",
+  "description": "Autonomous website performance optimization tool for Vite/React and modern web projects",
+  "main": "scripts/index.js",
+  "bin": {
+    "speed-doctor": "./scripts/index.js"
+  },
+  "scripts": {
+    "speed-doctor": "node scripts/index.js",
+    "optimize:images": "node scripts/optimize-images.js",
+    "optimize:fonts": "node scripts/optimize-fonts.js",
+    "optimize:preload": "node scripts/optimize-preload.js",
+    "optimize:lazy": "node scripts/optimize-lazy.js",
+    "optimize:scrollbar": "node scripts/optimize-scrollbar.js",
+    "report": "node scripts/report.js"
+  },
+  "dependencies": {
+    "sharp": "^0.33.0",
+    "glob": "^10.0.0",
+    "node-fetch": "^3.0.0",
+    "chalk": "^5.0.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "performance",
+    "optimization",
+    "webp",
+    "images",
+    "fonts",
+    "preload",
+    "core-web-vitals",
+    "lighthouse",
+    "lcp",
+    "cls",
+    "vite",
+    "react",
+    "speed"
+  ],
+  "author": "Speed-Doctor Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smiggisog97/Speed-Doctor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/smiggisog97/Speed-Doctor/issues"
+  },
+  "homepage": "https://github.com/smiggisog97/Speed-Doctor#readme"
+}
