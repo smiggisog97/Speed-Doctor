@@ -39,7 +39,7 @@ function gray(s)   { return `${c.gray}${s}${c.reset}`; }
 function printBanner() {
   console.log('');
   console.log(bold(cyan('  ╔══════════════════════════════════════════════╗')));
-  console.log(bold(cyan('  ║          Speed-Doctor  v1.0.0               ║')));
+  console.log(bold(cyan('  ║          Speed-Doctor  v1.1.0               ║')));
   console.log(bold(cyan('  ║   Autonomous Website Performance Optimizer   ║')));
   console.log(bold(cyan('  ╚══════════════════════════════════════════════╝')));
   console.log('');
@@ -70,9 +70,19 @@ const STEPS = [
     key: 'lazy',
   },
   {
-    name: 'Scrollbar Stability (CLS Prevention)',
-    script: path.join(SCRIPTS_DIR, 'optimize-scrollbar.js'),
-    key: 'scrollbar',
+    name: 'Image Decoding (async off main thread)',
+    script: path.join(SCRIPTS_DIR, 'optimize-decoding.js'),
+    key: 'decoding',
+  },
+  {
+    name: 'Reduced-Motion Safety Net',
+    script: path.join(SCRIPTS_DIR, 'optimize-motion.js'),
+    key: 'motion',
+  },
+  {
+    name: 'RAF Rate-Independence Audit',
+    script: path.join(SCRIPTS_DIR, 'audit-raf.js'),
+    key: 'raf',
   },
 ];
 

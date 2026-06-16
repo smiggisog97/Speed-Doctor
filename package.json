@@ -1,6 +1,6 @@
 {
   "name": "speed-doctor",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Autonomous website performance optimization tool for Vite/React and modern web projects",
   "main": "scripts/index.js",
   "bin": {
@@ -12,7 +12,9 @@
     "optimize:fonts": "node scripts/optimize-fonts.js",
     "optimize:preload": "node scripts/optimize-preload.js",
     "optimize:lazy": "node scripts/optimize-lazy.js",
-    "optimize:scrollbar": "node scripts/optimize-scrollbar.js",
+    "optimize:decoding": "node scripts/optimize-decoding.js",
+    "optimize:motion": "node scripts/optimize-motion.js",
+    "audit:raf": "node scripts/audit-raf.js",
     "report": "node scripts/report.js"
   },
   "dependencies": {

@@ -73,12 +73,14 @@ Any optimization that would require crossing these boundaries must be skipped en
 ### Loading Attributes
 - Change `loading="lazy"` to `loading="eager"` on images in above-fold components
 - Add `fetchpriority="high"` alongside `loading="eager"`
-- Scope: only images heuristically classified as above-fold (hero, banner, nav logo)
+- Add `decoding="async"` to below-fold images (those already tagged `loading="lazy"`)
+- Scope: only images heuristically classified as above-fold (hero, banner, nav logo) for eager; only below-fold for async decoding
 
-### Scrollbar CSS
-- Add `overflow-y: scroll; scrollbar-gutter: stable;` to the `html {}` selector
+### Reduced-Motion CSS
+- Append `@media (prefers-reduced-motion: reduce) { … }` block to global CSS
 - Only in global CSS files: `index.css`, `globals.css`, `app.css`, `main.css`, `base.css`
-- Only adds properties; never removes or reorders existing CSS
+- Only adds a new media-query block; never removes or reorders existing CSS
+- Zero impact on users without reduced-motion preference enabled
 
 ---
 
