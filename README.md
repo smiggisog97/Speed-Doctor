@@ -1,18 +1,20 @@
-# Speed-Doctor
+# Speed-Doctor v1.1.0
 
-Autonomous website performance optimizer. Analyzes and improves first-load performance, Core Web Vitals, and perceived speed — without touching your design, layout, or code logic.
+Autonomous website performance optimizer. Analyzes and improves first-load performance, Core Web Vitals, animation smoothness, and perceived speed — without touching your design, layout, or code logic.
 
 ## What It Does
 
-Speed-Doctor runs 5 automated optimization passes on your project:
+Speed-Doctor runs 7 automated passes on your project:
 
 | Pass | What It Does | Metric Improved |
 |------|-------------|----------------|
-| **Images** | Converts PNG/JPG to WebP (quality 82), updates all references | LCP, Total Bytes |
+| **Images** | Converts PNG/JPG → WebP (quality 82), updates all references | LCP, Total Bytes |
 | **Fonts** | Self-hosts Google Fonts in `public/fonts/`, eliminates CDN round-trips | FCP, LCP |
 | **Preload** | Injects `<link rel="preload">` for above-fold assets, `<link rel="prefetch">` for below-fold | LCP |
-| **Lazy Audit** | Upgrades `loading="lazy"` to `loading="eager" fetchpriority="high"` on hero images | LCP |
-| **Scrollbar** | Adds `scrollbar-gutter: stable` to prevent layout shift | CLS |
+| **Lazy Audit** | Upgrades `loading="lazy"` → `loading="eager" fetchpriority="high"` on hero images | LCP |
+| **Decoding** | Adds `decoding="async"` to below-fold images — decode off main thread | Scroll jank |
+| **Motion** | Adds `prefers-reduced-motion` CSS guard — stops animations on battery-saver devices | Smoothness |
+| **RAF Audit** | Flags `requestAnimationFrame` loops without time-delta guards (report only) | 120Hz runaway bug |
 
 ## Install
 
@@ -25,7 +27,7 @@ npm install
 ## Run
 
 ```bash
-# Run all optimizations against the current directory
+# Run all passes against the current directory
 npm run speed-doctor
 
 # Run against a specific project
@@ -36,7 +38,9 @@ npm run optimize:images
 npm run optimize:fonts
 npm run optimize:preload
 npm run optimize:lazy
-npm run optimize:scrollbar
+npm run optimize:decoding
+npm run optimize:motion
+npm run audit:raf
 npm run report
 ```
 
@@ -48,25 +52,25 @@ A real-world Vite + React portfolio site:
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
-| LCP | 3.2s | 1.8s | -44% |
-| CLS | 0.12 | 0.00 | -100% |
-| Total image weight | 2.1 MB | 0.9 MB | -57% |
-| Font requests | 4 external | 0 external | -100% |
+| LCP | 3.2s | 1.8s | −44% |
+| Total image weight | 2.1 MB | 0.9 MB | −57% |
+| Font requests | 4 external | 0 external | −100% |
+| Scroll jank | Visible | None | Fixed |
 | Lighthouse Performance | 62 | 91 | +29pts |
 
 *Results vary. Run Lighthouse before and after to measure your specific improvement.*
 
 ## Framework Support
 
-| Framework | Images | Fonts | Preload | Lazy | Scrollbar |
-|-----------|--------|-------|---------|------|-----------|
-| Vite + React | Full | Full | Full | Full | Full |
-| Vite + Vue 3 | Full | Full | Full | Partial | Full |
-| Create React App | Full | Full | Full | Full | Full |
-| Next.js 13/14 | Full | Full | Partial | Partial | Full |
-| Astro | Full | Full | Partial | Partial | Full |
-| SvelteKit | Full | Full | Partial | Partial | Full |
-| Plain HTML/CSS | Full | Full | Full | Full | Full |
+| Framework | Images | Fonts | Preload | Lazy | Decoding | Motion |
+|-----------|--------|-------|---------|------|----------|--------|
+| Vite + React | Full | Full | Full | Full | Full | Full |
+| Vite + Vue 3 | Full | Full | Full | Partial | Full | Full |
+| Create React App | Full | Full | Full | Full | Full | Full |
+| Next.js 13/14 | Full | Full | Partial | Partial | Full | Full |
+| Astro | Full | Full | Partial | Partial | Full | Full |
+| SvelteKit | Full | Full | Partial | Partial | Full | Full |
+| Plain HTML/CSS | Full | Full | Full | Full | Full | Full |
 
 See [docs/framework-support.md](docs/framework-support.md) for framework-specific notes.
 
@@ -91,7 +95,6 @@ See [docs/framework-support.md](docs/framework-support.md) for framework-specifi
 - Classifies assets as above-fold or below-fold (heuristic: component/class names)
 - Injects `<link rel="preload" as="image">` for above-fold assets
 - Injects `<link rel="prefetch">` for below-fold assets
-- Detects lazy-loaded routes and injects hover-prefetch helpers
 - Fully idempotent — never adds duplicate tags
 
 ### Lazy Loading Audit
@@ -100,11 +103,40 @@ See [docs/framework-support.md](docs/framework-support.md) for framework-specifi
 - Upgrades them to `loading="eager" fetchpriority="high"`
 - Preserves `loading="lazy"` on cards, galleries, and other below-fold content
 
-### Scrollbar Stability (CLS Prevention)
-- Finds your global CSS file (`index.css`, `globals.css`, `app.css`, etc.)
-- Adds `overflow-y: scroll; scrollbar-gutter: stable;` to the `html` selector
-- Prevents CLS from scrollbar appearing/disappearing on page transitions
-- Idempotent — skips if already present
+### Image Decoding (async)
+- Adds `decoding="async"` to below-fold lazy-loaded images
+- Browser decodes images off the main thread — reduces jank during scroll
+- Skips above-fold/hero images (synchronous decode is better for LCP there)
+- Idempotent — skips images that already have a `decoding` attribute
+
+### Reduced-Motion Safety Net
+- Appends a `@media (prefers-reduced-motion: reduce)` block to global CSS
+- Disables all animations/transitions for users who opted into reduced motion (OS setting)
+- Prevents animation loops from running on battery-saver / low-power devices
+- Zero impact on normal users — pure media-query gate
+- Idempotent — skips if guard already present
+
+### RAF Rate-Independence Audit (report only)
+- Scans JS/TS files for `requestAnimationFrame` loops without a time-delta guard
+- Flags the 120Hz runaway bug: animations that move things by a fixed amount per frame run 2× faster on 120Hz displays
+- **Never modifies source files** — outputs file + line numbers for manual review
+- Fix pattern (see below)
+
+#### The 120Hz Runaway Bug — Fix Pattern
+
+```js
+const STEP = 1000 / 60; // 16.67ms — one 60Hz frame
+let lastUpdate = performance.now();
+
+function draw() {
+  const now = performance.now();
+  let elapsed = now - lastUpdate;
+  if (elapsed > 250) elapsed = STEP; // guard: tab was backgrounded
+  const steps = Math.floor(elapsed / STEP);
+  if (steps > 0) { lastUpdate += steps * STEP; simulate(steps); }
+  requestAnimationFrame(draw);
+}
+```
 
 ## Safety
 
@@ -116,6 +148,7 @@ Speed-Doctor is designed to be safe by default. It:
 - **Never** modifies Framer Motion, GSAP, or other animation configs
 - **Always** preserves original image files
 - **Always** checks before acting (idempotent)
+- **RAF Audit is report-only** — zero file modifications
 
 See [.claude/skills/speed-doctor/rules/safety.md](.claude/skills/speed-doctor/rules/safety.md) for the complete boundary definition.
 
@@ -130,6 +163,7 @@ If you use [Claude Code](https://claude.ai/code), Speed-Doctor includes a skill 
 This enables Claude to run Speed-Doctor automatically when you say things like:
 - "optimize website performance"
 - "make the site faster"
+- "make website smooth"
 - "improve core web vitals"
 - "run speed-doctor"
 
@@ -152,7 +186,9 @@ Speed-Doctor/
 │   ├── optimize-fonts.js     # Font self-hosting
 │   ├── optimize-preload.js   # Preload/prefetch injection
 │   ├── optimize-lazy.js      # Lazy loading audit
-│   ├── optimize-scrollbar.js # Scrollbar stability
+│   ├── optimize-decoding.js  # Image decode off main thread
+│   ├── optimize-motion.js    # Reduced-motion CSS guard
+│   ├── audit-raf.js          # RAF rate-independence audit (report only)
 │   ├── report.js             # Report generator
 │   └── utils.js              # Shared utilities
 ├── src/
@@ -170,27 +206,10 @@ Speed-Doctor/
 │   ├── optimization-guide.md
 │   └── framework-support.md
 ├── examples/
-│   └── report-template.md    # Sample OPTIMIZATION_REPORT.md
+│   └── report-template.md
 ├── package.json
 └── LICENSE
 ```
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feat/my-optimization`
-3. Make your changes with tests
-4. Ensure scripts are idempotent and don't modify design/layout
-5. Add documentation for any new optimization pass
-6. Submit a pull request
-
-### Adding a New Optimization Pass
-
-1. Create `scripts/optimize-<name>.js`
-2. Add the corresponding `npm run optimize:<name>` script to `package.json`
-3. Import and register the step in `scripts/index.js`
-4. Document it in `docs/optimization-guide.md`
-5. Add it to the safety rules if it modifies files
 
 ## License
 
