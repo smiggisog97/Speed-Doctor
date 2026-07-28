@@ -182,6 +182,105 @@ When a page transitions from less-than-viewport-height content (no scrollbar) to
 
 ---
 
+## Smooth Experience Playbook
+
+These are manual checks and implementation patterns for cases where metrics look acceptable
+but the experience still feels late, jumpy, or unfinished in a cold browser.
+
+### Cold-route media readiness
+
+Use one route asset manifest for:
+
+1. Direct URL visits
+2. Loader-time prefetch
+3. Hover/touch route prefetch
+4. In-route scroll/reveal sections
+
+For each route-critical image:
+
+```js
+function preloadImage(src) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = img.onerror = async () => {
+      try {
+        if (img.decode) await img.decode();
+      } catch {}
+      resolve();
+    };
+    img.src = src;
+  });
+}
+```
+
+The goal is not to delay the page unnecessarily. The goal is to start image-heavy motion
+only after the assets that motion exposes are already discovered and decoded.
+
+### Horizontal mockup strips
+
+Phone mockup strips often fail on cold load because the first few screenshots appear, while
+off-canvas screens reveal as empty device shells when the user scrolls sideways.
+
+Fix pattern:
+
+- Treat every strip screenshot as near-critical, not lazy.
+- Preload and decode all strip images at route entry.
+- Use `loading="eager"` for the strip images.
+- Keep exact `width`, `height`, or `aspect-ratio` on the mockup frame.
+- Do not change the carousel timing, snapping, or reveal easing just to hide loading.
+
+Verification:
+
+- Open the route in an incognito browser.
+- Immediately scroll to the strip.
+- Drag horizontally before waiting.
+- Confirm every phone frame already contains its screenshot.
+
+### Moving photography, music, and marquee sections
+
+Do not lazy-load assets inside moving tracks. A moving track exposes images faster than normal
+viewport heuristics can discover them.
+
+Fix pattern:
+
+- Remove lazy loading from moving-track images.
+- Preload and decode all desktop and mobile track assets before the track starts.
+- Share the same preloader across loader navigation, route prefetch, and direct visits.
+- Reserve image dimensions so there is no tile jump after decode.
+
+### Critical icons and nav reveal
+
+Icons inside buttons, chips, and nav controls are part of the first impression. On cold cache,
+they can appear after the button animation if they are discovered too late.
+
+Fix pattern:
+
+- Inline critical SVG icons or import them statically.
+- Preload icon assets used by above-fold nav buttons.
+- Start nav reveal after critical icon discovery where possible.
+- For mobile sticky nav state changes, transition background, padding, and transform together
+  instead of snapping between states.
+
+### Route transition flash
+
+If navigation briefly shows a dark or wrong-colored surface before the destination page:
+
+- Put the destination background on the route shell before the transition starts.
+- Avoid dark fallback wrappers for light routes.
+- Use the same background path for direct visits, loader navigation, and hover-prefetched visits.
+
+### Reveal animation guardrail
+
+When the issue is late content, do not solve it with a fade that hides missing assets.
+Use this sequence:
+
+1. Reserve layout space.
+2. Preload and decode route-critical assets.
+3. Reveal from below at full opacity.
+4. Keep existing timing and easing unless the user explicitly asks to change animation.
+
+---
+
 ## Estimated Performance Impact
 
 Based on real-world measurements across Vite/React portfolio sites:

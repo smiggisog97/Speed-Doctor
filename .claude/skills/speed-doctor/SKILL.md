@@ -71,6 +71,68 @@ npm install
 | Motion | Adds `prefers-reduced-motion` CSS guard | Smooth on battery-saver/low-power devices |
 | RAF Audit | Flags rAF loops without time-delta guards (report only) | Fixes 120Hz runaway bug |
 
+## Smooth Experience Field Notes
+
+Use these checks when the user reports a site that is technically fast but still feels late,
+flashy, or unfinished on a cold browser session.
+
+### Route-critical media must be ready before motion
+
+- Preload and decode route-critical images before scroll/reveal/marquee motion starts.
+- Do not leave `loading="lazy"` on images inside moving tracks, horizontal mockup strips,
+  first-screen galleries, or anything the user can scroll into immediately.
+- For direct route visits, loader navigation, and hover-prefetch navigation, use the same
+  asset list so each path warms the same images.
+- Reserve exact dimensions or aspect ratios for image frames, phone mockups, album covers,
+  and photography tiles so decoded images do not pop into a shifting shell.
+
+### Horizontal mockup strips
+
+For phone UI strips, carousels, and other sideways-scrolled case-study sections:
+
+- Treat every visible and near-next screen as route-critical, even if it starts off-canvas.
+- Prefer eager loading plus early `Image.decode()` for all strip screenshots.
+- Keep the strip animation timing unchanged; fix readiness, not the design motion.
+- Verify by opening in an incognito window, scrolling sideways immediately, and confirming
+  no empty device shells appear before the screenshots.
+
+### Moving image tracks
+
+For album covers, photography rails, marquees, and infinite tracks:
+
+- Never lazy-load images inside the moving track.
+- Decode all track assets before the track begins moving.
+- Use a shared preload helper during loader time and route prefetch so desktop and mobile
+  receive the same readiness guarantees.
+- Confirm no broken image icons or late tiles after motion starts.
+
+### Icons and navigation
+
+For first-load nav buttons and chips:
+
+- Critical icons should be inline SVGs, statically imported, or preloaded before reveal.
+- Do not let the nav entrance animation start while icon files are still undiscovered.
+- On mobile sticky nav changes, animate transform, padding, and background with a stable
+  transition instead of abruptly toggling visual states.
+
+### Route transition flashes
+
+If a page shows a brief dark or wrong-colored screen between routes:
+
+- Set the destination page background before the transition begins.
+- Avoid dark fallback containers for light pages.
+- Keep route-shell backgrounds consistent for loader navigation, hover-prefetch, and direct
+  URL visits.
+
+### Reveal animation guardrail
+
+When fixing late appearance, avoid hiding the issue with opacity fades. The preferred pattern:
+
+- assets decode first
+- layout space is already reserved
+- content enters from below at full opacity
+- animation duration and easing stay unchanged unless the user explicitly asks to change them
+
 ## Safety Rules
 
 See `rules/safety.md` for the complete list. Key points:

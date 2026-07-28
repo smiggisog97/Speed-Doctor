@@ -122,6 +122,12 @@ See [docs/framework-support.md](docs/framework-support.md) for framework-specifi
 - **Never modifies source files** — outputs file + line numbers for manual review
 - Fix pattern (see below)
 
+### Smooth Experience Playbook
+- Documents cold-cache fixes for late image appearance in moving tracks, carousels, and phone mockup strips
+- Covers route-level preload/decode, direct visits, loader navigation, and hover-prefetch paths
+- Includes first-load nav icon readiness and route transition flash checks
+- Keeps animation timing and visual design unchanged while fixing asset readiness
+
 #### The 120Hz Runaway Bug — Fix Pattern
 
 ```js
