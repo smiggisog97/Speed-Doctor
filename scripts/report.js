@@ -16,6 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const { getProjectRoot, walkDir, readFile, writeFile, printHeader, logSuccess, logInfo, logSkip, logWarn } = require('./utils');
+const { analyzeDeviceCompatibility } = require('./audit-device');
 
 const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.avif']);
 
@@ -174,6 +175,7 @@ function generateReport(projectRoot) {
   const preloads = auditPreloads(projectRoot);
   const lazy = auditLazyFixes(projectRoot);
   const scrollbar = auditScrollbar(projectRoot);
+  const deviceFindings = analyzeDeviceCompatibility(projectRoot);
   const lcp = estimateLcpImprovement(images, fonts, preloads, lazy, scrollbar);
 
   const projectName = path.basename(projectRoot);
@@ -183,7 +185,7 @@ function generateReport(projectRoot) {
     ``,
     `**Project:** \`${projectName}\`  `,
     `**Date:** ${formatDate()}  `,
-    `**Tool:** Speed-Doctor v1.0.0`,
+    `**Tool:** Speed-Doctor v1.2.0`,
     ``,
     `---`,
     ``,
@@ -196,6 +198,7 @@ function generateReport(projectRoot) {
     `| Preload/Prefetch | ${preloads.preloads + preloads.prefetches > 0 ? '✅ Applied' : '⏭ Skipped'} | ${preloads.preloads} preload, ${preloads.prefetches} prefetch tag(s) |`,
     `| Lazy Loading Audit | ${lazy.eagerImages > 0 ? '✅ Fixed' : '✅ Passed'} | ${lazy.eagerImages} above-fold image(s) set to eager |`,
     `| Scrollbar Stability | ${scrollbar.fixed ? '✅ Applied' : '⏭ Not needed'} | ${scrollbar.fixed ? `CLS fix in \`${scrollbar.file}\`` : 'No global CSS found or already set'} |`,
+    `| Device Compatibility Audit | ${deviceFindings.length > 0 ? '⚠️ Review' : '✅ Passed'} | ${deviceFindings.length} device-specific risk pattern(s) |`,
     ``,
     `---`,
     ``,
@@ -278,6 +281,22 @@ function generateReport(projectRoot) {
           `> This prevents the page from shifting when a scrollbar appears/disappears, improving CLS score.`,
         ].join('\n')
       : `No action taken. Either the fix is already present or no global CSS file was found.`,
+    ``,
+    `---`,
+    ``,
+    `## Device Compatibility Audit`,
+    ``,
+    deviceFindings.length > 0
+      ? [
+          `The following patterns need focused testing on reduced-motion, high-DPR, software-rendered, or cold-cache browsers:`,
+          ``,
+          `| Severity | Location | Review |`,
+          `|---|---|---|`,
+          ...deviceFindings.map((finding) => `| ${finding.severity.toUpperCase()} | \`${finding.file}:${finding.line}\` | ${finding.message} |`),
+        ].join('\n')
+      : `No reduced-motion layout, direct-interaction, canvas DPR, WebGL fallback, or image-priority risks were detected.`,
+    ``,
+    `> This audit is report-only. Verify findings in the affected browser before changing working animation or layout code.`,
     ``,
     `---`,
     ``,

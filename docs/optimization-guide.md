@@ -187,6 +187,23 @@ When a page transitions from less-than-viewport-height content (no scrollbar) to
 These are manual checks and implementation patterns for cases where metrics look acceptable
 but the experience still feels late, jumpy, or unfinished in a cold browser.
 
+### One-device diagnostic sequence
+
+When several unrelated features fail on one browser while other devices remain smooth, avoid
+global simplification. Check the shared environment first:
+
+1. Read `matchMedia('(prefers-reduced-motion: reduce)').matches`.
+2. Verify WebGL availability, hardware acceleration, and context loss.
+3. Compare a cold-cache network trace and image decode timing.
+4. Measure canvas frame cost and backing-store dimensions on high-DPR screens.
+5. Add a capability- or preference-gated fallback while preserving the healthy path.
+
+Run `npm run audit:device` to locate code that needs this focused review. The audit never
+modifies project files.
+
+Reduced-motion fallbacks must remain usable. Avoid blanket `transform: none !important` when
+transforms provide positioning, and do not suppress native clicks when drag handlers are skipped.
+
 ### Cold-route media readiness
 
 Use one route asset manifest for:

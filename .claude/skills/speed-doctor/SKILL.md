@@ -1,18 +1,9 @@
 ---
 name: speed-doctor
-description: Autonomous website performance optimizer. Analyzes and improves first-load performance, Core Web Vitals, animation smoothness, and perceived speed without changing design, layout, or functionality.
-triggers:
-  - "run speed-doctor"
-  - "optimize website performance"
-  - "optimize assets"
-  - "improve core web vitals"
-  - "make site faster"
-  - "speed doctor"
-  - "performance audit"
-  - "make website smooth"
+description: Autonomous website performance optimizer and cross-device diagnostics workflow. Use when asked to run Speed Doctor, optimize website performance or assets, improve Core Web Vitals, make a site faster or smoother, perform a performance audit, or diagnose animation, canvas, WebGL, image-loading, and reduced-motion failures that occur only in specific browsers or devices—without changing healthy design, layout, or functionality.
 ---
 
-# Speed-Doctor Skill v1.1.0
+# Speed-Doctor Skill v1.2.0
 
 When invoked, analyze the current project and run all performance optimizations automatically.
 
@@ -68,13 +59,28 @@ npm install
 | Preload | Injects `<link rel="preload">` for above-fold assets | −200–500ms LCP |
 | Lazy | Audits `loading="lazy"` on hero images, fixes to eager | −100–300ms LCP |
 | Decoding | Adds `decoding="async"` to below-fold images | Reduces scroll jank, off-thread decode |
-| Motion | Adds `prefers-reduced-motion` CSS guard | Smooth on battery-saver/low-power devices |
+| Motion | Adds `prefers-reduced-motion` CSS guard | Respects the user's explicit accessibility preference |
 | RAF Audit | Flags rAF loops without time-delta guards (report only) | Fixes 120Hz runaway bug |
+| Device Audit | Flags reduced-motion layout traps, interaction loss, uncapped canvas DPR, missing WebGL fallback, and priority floods (report only) | Finds one-browser failures without changing healthy devices |
 
 ## Smooth Experience Field Notes
 
 Use these checks when the user reports a site that is technically fast but still feels late,
 flashy, or unfinished on a cold browser session.
+
+### Diagnose one-device failures before optimizing
+
+When several unrelated features fail on only one browser, look for a shared capability or
+preference before editing each component:
+
+1. Check `matchMedia('(prefers-reduced-motion: reduce)').matches`.
+2. Check WebGL availability, context loss, and hardware acceleration.
+3. Compare cold-cache network and image decode timing.
+4. Measure canvas frame time and cap backing-store DPR where necessary.
+5. Keep the healthy-device path unchanged; add feature- or preference-gated fallbacks.
+
+Reduced motion is an explicit accessibility preference, not a reliable battery-saver or
+low-power-device signal. Do not use it as a general performance detector.
 
 ### Route-critical media must be ready before motion
 
@@ -142,6 +148,7 @@ See `rules/safety.md` for the complete list. Key points:
 - NEVER touch business logic or state
 - ONLY modify: image formats, font loading, HTML hints, loading/decoding attributes, CSS media queries
 - RAF Audit is report-only — never modifies source files
+- Device Audit is report-only — never modifies source files
 
 ## Running Individual Passes
 
@@ -153,6 +160,7 @@ npm run optimize:lazy       # Lazy loading audit only
 npm run optimize:decoding   # Image decoding="async" injection
 npm run optimize:motion     # Reduced-motion CSS guard
 npm run audit:raf           # RAF rate-independence audit (report only)
+npm run audit:device        # Device/browser compatibility audit (report only)
 npm run report              # Regenerate report only
 ```
 

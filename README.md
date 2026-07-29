@@ -1,10 +1,10 @@
-# Speed-Doctor v1.1.0
+# Speed-Doctor v1.2.0
 
 Autonomous website performance optimizer. Analyzes and improves first-load performance, Core Web Vitals, animation smoothness, and perceived speed — without touching your design, layout, or code logic.
 
 ## What It Does
 
-Speed-Doctor runs 7 automated passes on your project:
+Speed-Doctor runs 8 automated passes on your project:
 
 | Pass | What It Does | Metric Improved |
 |------|-------------|----------------|
@@ -13,8 +13,9 @@ Speed-Doctor runs 7 automated passes on your project:
 | **Preload** | Injects `<link rel="preload">` for above-fold assets, `<link rel="prefetch">` for below-fold | LCP |
 | **Lazy Audit** | Upgrades `loading="lazy"` → `loading="eager" fetchpriority="high"` on hero images | LCP |
 | **Decoding** | Adds `decoding="async"` to below-fold images — decode off main thread | Scroll jank |
-| **Motion** | Adds `prefers-reduced-motion` CSS guard — stops animations on battery-saver devices | Smoothness |
+| **Motion** | Adds a `prefers-reduced-motion` CSS guard for the user's explicit accessibility preference | Accessibility |
 | **RAF Audit** | Flags `requestAnimationFrame` loops without time-delta guards (report only) | 120Hz runaway bug |
+| **Device Audit** | Flags reduced-motion layout traps, disabled interaction, uncapped canvas DPR, missing WebGL fallback, and image-priority floods (report only) | Cross-device resilience |
 
 ## Install
 
@@ -41,6 +42,7 @@ npm run optimize:lazy
 npm run optimize:decoding
 npm run optimize:motion
 npm run audit:raf
+npm run audit:device
 npm run report
 ```
 
@@ -112,7 +114,7 @@ See [docs/framework-support.md](docs/framework-support.md) for framework-specifi
 ### Reduced-Motion Safety Net
 - Appends a `@media (prefers-reduced-motion: reduce)` block to global CSS
 - Disables all animations/transitions for users who opted into reduced motion (OS setting)
-- Prevents animation loops from running on battery-saver / low-power devices
+- Respects the explicit reduced-motion accessibility preference; it is not used as a device-power detector
 - Zero impact on normal users — pure media-query gate
 - Idempotent — skips if guard already present
 
@@ -121,6 +123,13 @@ See [docs/framework-support.md](docs/framework-support.md) for framework-specifi
 - Flags the 120Hz runaway bug: animations that move things by a fixed amount per frame run 2× faster on 120Hz displays
 - **Never modifies source files** — outputs file + line numbers for manual review
 - Fix pattern (see below)
+
+### Device Compatibility Audit (report only)
+- Flags `transform: none !important` inside reduced-motion media queries because transform-positioned UI can collapse to its DOM origin
+- Flags reduced-motion checks coupled to pointer or drag handlers so direct interactions keep a usable fallback
+- Flags uncapped canvas DPR, missing WebGL context-loss handling, and large eager/high-priority image batches
+- Never guesses that a device is "weak" from its model, screen size, or user agent
+- Never modifies source files; reproduce and measure in the affected browser before fixing
 
 ### Smooth Experience Playbook
 - Documents cold-cache fixes for late image appearance in moving tracks, carousels, and phone mockup strips
@@ -154,7 +163,7 @@ Speed-Doctor is designed to be safe by default. It:
 - **Never** modifies Framer Motion, GSAP, or other animation configs
 - **Always** preserves original image files
 - **Always** checks before acting (idempotent)
-- **RAF Audit is report-only** — zero file modifications
+- **RAF and Device Audits are report-only** — zero file modifications
 
 See [.claude/skills/speed-doctor/rules/safety.md](.claude/skills/speed-doctor/rules/safety.md) for the complete boundary definition.
 
@@ -195,6 +204,7 @@ Speed-Doctor/
 │   ├── optimize-decoding.js  # Image decode off main thread
 │   ├── optimize-motion.js    # Reduced-motion CSS guard
 │   ├── audit-raf.js          # RAF rate-independence audit (report only)
+│   ├── audit-device.js       # Cross-device risk audit (report only)
 │   ├── report.js             # Report generator
 │   └── utils.js              # Shared utilities
 ├── src/

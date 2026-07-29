@@ -57,7 +57,7 @@ node scripts/index.js
 npm run speed-doctor
 ```
 
-2. Speed-Doctor will run 5 optimization passes and print progress for each.
+2. Speed-Doctor will run 8 optimization and audit passes and print progress for each.
 
 3. After completion, review `OPTIMIZATION_REPORT.md` in your project root.
 
@@ -80,7 +80,13 @@ Speed-Doctor performs these steps in order:
 
 4. **Lazy loading audit** — Finds `loading="lazy"` on hero/banner images, upgrades them to `loading="eager" fetchpriority="high"`.
 
-5. **Scrollbar stability** — Adds `scrollbar-gutter: stable` to your global CSS to prevent CLS from scrollbar appearing/disappearing.
+5. **Image decoding** — Adds asynchronous decoding to suitable below-fold images.
+
+6. **Reduced motion** — Adds an accessibility-safe motion-duration guard.
+
+7. **RAF audit** — Reports refresh-rate-dependent animation loops.
+
+8. **Device audit** — Reports browser-specific risks without modifying source files.
 
 ## Idempotent by Design
 
@@ -98,7 +104,10 @@ npm run optimize:images     # WebP conversion
 npm run optimize:fonts      # Font self-hosting
 npm run optimize:preload    # Preload/prefetch
 npm run optimize:lazy       # Lazy loading audit
-npm run optimize:scrollbar  # Scrollbar stability
+npm run optimize:decoding   # Below-fold image decoding
+npm run optimize:motion     # Reduced-motion accessibility guard
+npm run audit:raf           # RAF rate-independence audit (report only)
+npm run audit:device        # Device compatibility audit (report only)
 npm run report              # Regenerate report
 ```
 
