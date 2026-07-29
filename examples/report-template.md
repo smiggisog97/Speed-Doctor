@@ -4,7 +4,7 @@ This is a sample report showing what OPTIMIZATION_REPORT.md looks like after run
 
 **Project:** `my-vite-portfolio`
 **Date:** 2025-01-15
-**Tool:** Speed-Doctor v1.0.0
+**Tool:** Speed-Doctor v1.2.0
 
 ---
 
@@ -17,6 +17,7 @@ This is a sample report showing what OPTIMIZATION_REPORT.md looks like after run
 | Preload/Prefetch | Applied | 3 preload, 8 prefetch tags |
 | Lazy Loading Audit | Fixed | 2 above-fold images set to eager |
 | Scrollbar Stability | Applied | CLS fix in `src/index.css` |
+| Device Compatibility Audit | Review | 2 device-specific patterns need browser verification |
 
 ---
 

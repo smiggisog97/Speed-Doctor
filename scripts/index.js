@@ -39,7 +39,7 @@ function gray(s)   { return `${c.gray}${s}${c.reset}`; }
 function printBanner() {
   console.log('');
   console.log(bold(cyan('  ╔══════════════════════════════════════════════╗')));
-  console.log(bold(cyan('  ║          Speed-Doctor  v1.1.0               ║')));
+  console.log(bold(cyan('  ║          Speed-Doctor  v1.2.0               ║')));
   console.log(bold(cyan('  ║   Autonomous Website Performance Optimizer   ║')));
   console.log(bold(cyan('  ╚══════════════════════════════════════════════╝')));
   console.log('');
@@ -83,6 +83,11 @@ const STEPS = [
     name: 'RAF Rate-Independence Audit',
     script: path.join(SCRIPTS_DIR, 'audit-raf.js'),
     key: 'raf',
+  },
+  {
+    name: 'Device Compatibility Audit',
+    script: path.join(SCRIPTS_DIR, 'audit-device.js'),
+    key: 'device',
   },
 ];
 

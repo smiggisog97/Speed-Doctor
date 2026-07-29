@@ -4,17 +4,17 @@ Speed-Doctor is designed primarily for Vite + React projects but works with most
 
 ## Support Matrix
 
-| Framework | Images | Fonts | Preload | Lazy Audit | Scrollbar | Notes |
-|-----------|--------|-------|---------|-----------|-----------|-------|
+| Framework | Images | Fonts | Preload | Lazy Audit | Device Audit | Notes |
+|-----------|--------|-------|---------|-----------|--------------|-------|
 | Vite + React | Full | Full | Full | Full | Full | Primary target |
 | Vite + Vue 3 | Full | Full | Full | Partial | Full | JSX not used; template attrs supported |
 | Create React App | Full | Full | Full | Full | Full | |
 | Next.js 13/14 App Router | Full | Full | Limited | Partial | Full | See Next.js notes |
 | Next.js 12 Pages Router | Full | Full | Limited | Full | Full | |
-| Astro | Full | Full | Partial | Partial | Full | See Astro notes |
+| Astro | Full | Full | Partial | Partial | Partial | See Astro notes |
 | SvelteKit | Full | Full | Partial | Partial | Full | |
 | Nuxt 3 | Full | Full | Partial | Partial | Full | |
-| Plain HTML/CSS | Full | Full | Full | Full | Full | |
+| Plain HTML/CSS | Full | Full | Full | Full | Partial | JavaScript-specific checks may not apply |
 | Gatsby | Full | Partial | Partial | Full | Full | |
 
 **Full** = Works automatically  

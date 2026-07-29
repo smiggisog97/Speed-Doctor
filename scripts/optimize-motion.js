@@ -4,10 +4,10 @@
  *
  * Adds a prefers-reduced-motion safety net to global CSS.
  *
- * Why: Browsers/OSes let users request "reduced motion" (battery-saver mode,
- * vestibular disorder accessibility setting). Without a CSS guard, ALL animations
- * still run at full speed — wasting CPU, causing stutter on low-power devices,
- * and potentially harming users with motion sensitivities.
+ * Why: Browsers/OSes let users explicitly request reduced motion as an
+ * accessibility preference. Without a CSS guard, animations can still run at
+ * full speed and potentially harm users with motion sensitivities. This signal
+ * is not a reliable proxy for battery saver or device performance.
  *
  * Real-world lesson: a portfolio site's scroll marquee ran at 10× normal speed
  * on reduced-motion systems because the JS animation used system clock deltas

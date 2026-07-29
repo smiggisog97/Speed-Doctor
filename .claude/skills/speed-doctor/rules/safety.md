@@ -81,6 +81,13 @@ Any optimization that would require crossing these boundaries must be skipped en
 - Only in global CSS files: `index.css`, `globals.css`, `app.css`, `main.css`, `base.css`
 - Only adds a new media-query block; never removes or reorders existing CSS
 - Zero impact on users without reduced-motion preference enabled
+- Never add blanket `transform: none`, `display`, or `position` overrides; transform-positioned components may collapse or overlap
+- Never disable native links, taps, pointer input, or direct manipulation without an equivalent usable fallback
+
+### Device Compatibility Audit
+- Report risky patterns only; never rewrite layout, interaction, canvas, WebGL, or image-priority code automatically
+- Treat reduced motion as an accessibility preference, not a proxy for device power or battery state
+- Prefer capability checks and measurements over user-agent, screen-size, or device-model detection
 
 ---
 
